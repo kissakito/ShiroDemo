@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="mapper.RoleMapper">
+	
+	<!--角色的新增  -->
+	<insert id="saveRole">
+		insert into role_p values(
+			#{roleId},
+			#{name},
+			#{remark,jdbcType=VARCHAR},
+			#{orderNo,jdbcType=INTEGER},
+			#{createBy,jdbcType=VARCHAR},
+			#{createDept,jdbcType=VARCHAR},
+			SYSDATE,
+			#{updateBy,jdbcType=VARCHAR},
+			SYSDATE
+		)
+	</insert>
+	
+	<!--删除角色  -->
+	<delete id="deleteRoles">
+		delete from role_p where role_id in(
+			<foreach collection="array" item="id" separator=",">
+				#{id}
+			</foreach>
+		)
+	</delete>
+	
+	<update id="updateRole">
+		update role_p
+			<set>
+				name=#{name},
+				remark=#{remark},
+				order_no=#{orderNo},
+				<if test="createBy !=null">create_by = #{createBy},</if>
+				<if test="createDept !=null">create_dept = #{createDept},</if>
+				<if test="createTime !=null">create_time = #{createTime},</if>
+				<if test="updateBy !=null">update_by = #{updateBy},</if>
+				update_time = SYSDATE
+			</set>
+			where role_id = #{roleId}
+	</update>
+	
+	
+	<!--添加角色和权限信息  -->
+	<insert id="saveRoleModule">
+		insert into role_module_p values(#{moduleId},#{roleId})
+	</insert>
+	
+	<!--根据角色Id查询权限列表  -->
+	<select id="findModuleIdByRoleId" resultType="string">
+		select * from role_module_p where role_id = #{roleId}
+	</select>
+	
+	<!--根据角色的ID删除中间表  -->
+	<delete id="deleteRoleModule">
+		delete from role_module_p where role_id =#{roleId}
+	</delete>
+	
+	
+</mapper>

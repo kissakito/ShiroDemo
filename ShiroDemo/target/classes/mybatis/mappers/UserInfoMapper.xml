@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="mapper.UserInfoMapper">
+	<insert id="saveUserInfo">
+		insert into user_info_p values(
+			#{userInfoId},
+			#{name,jdbcType=VARCHAR},
+			#{cardNo,jdbcType=VARCHAR},
+			#{manager.userInfoId,jdbcType=VARCHAR},
+			#{joinDate,jdbcType=TIMESTAMP},
+			#{salary,jdbcType=DOUBLE},
+			#{birthday,jdbcType=TIMESTAMP},
+			#{gender,jdbcType=VARCHAR},
+			#{station,jdbcType=VARCHAR},
+			#{telephone,jdbcType=VARCHAR},
+			#{userLevel,jdbcType=VARCHAR},
+			#{remark,jdbcType=VARCHAR},
+			#{orderNo,jdbcType=INTEGER},
+			#{createBy,jdbcType=VARCHAR},
+			#{createDept,jdbcType=VARCHAR},
+			SYSDATE,
+			#{updateBy,jdbcType=VARCHAR},
+			SYSDATE
+			
+		)
+	</insert>
+	
+	<delete id="deleteUserInfo">
+		delete from user_info_p where user_info_id in(
+			<foreach collection="array" item="userInfoId">
+				#{userInfoId}
+			</foreach>
+		)
+	</delete>
+	
+	
+	
+</mapper>

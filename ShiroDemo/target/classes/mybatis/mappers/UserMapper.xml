@@ -1,0 +1,168 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="mapper.UserMapper">
+
+	<select id="findUserList" resultMap="UserRM">
+		SELECT
+		u.user_id,u.dept_id,d.dept_name,u.username,u.password,u.state,
+		u.name,u.card_no,u.manager_id,u.manager_name,u.join_date,u.salary,
+		u.birthday,u.gender,u.station,u.telephone,u.user_level,u.remark,u.order_no,
+		u.create_by,u.create_dept,u.create_time,
+		u.update_by,u.update_time
+		FROM
+		(SELECT u.user_id,u.dept_id,u.username,u.password,u.state,p.name,
+		p.card_no,p.manager_id,p.manager_name,p.join_date,p.salary,
+		p.birthday,p.gender,p.station,p.telephone,p.user_level,
+		p.remark,p.order_no,u.create_by,u.create_dept,u.create_time,
+		u.update_by,u.update_time FROM
+		user_p u
+		LEFT JOIN
+		(SELECT u.user_info_id,u.name,u.card_no,u.manager_id,p.name AS
+		manager_name,u.join_date,
+		u.salary,u.birthday,u.gender,u.station,u.telephone,u.user_level,
+		u.remark,u.order_no FROM
+		user_info_p u
+		LEFT JOIN
+		user_info_p p
+		ON u.manager_id = p.user_info_id)p
+		ON u.user_id = p.user_info_id)u
+		LEFT JOIN
+		dept_p d
+		ON u.dept_id = d.dept_id
+	</select>
+
+	<resultMap type="User" id="UserRM">
+		<id property="userId" column="USER_ID" />
+		<result property="username" column="USERNAME" />
+		<result property="password" column="PASSWORD" />
+		<result property="state" column="STATE" />
+		<result property="createBy" column="CREATE_BY" />
+		<result property="createDept" column="CREATE_DEPT" />
+		<result property="createTime" column="CREATE_TIME" />
+		<result property="updateBy" column="UPDATE_BY" />
+		<result property="updateTime" column="UPDATE_TIME" />
+
+
+		<!--关联部门 -->
+		<association property="dept" javaType="Dept">
+			<id property="deptId" column="DEPT_ID" />
+			<result property="deptName" column="DEPT_NAME" />
+		</association>
+
+		<!--关联userInfo -->
+		<association property="userInfo" javaType="UserInfo">
+			<id property="userInfoId" column="USER_ID" />
+			<result property="name" column="NAME" />
+			<result property="cardNo" column="CARD_NO" />
+			<result property="joinDate" column="JOIN_DATE" />
+			<result property="salary" column="SALARY" />
+			<result property="birthday" column="BIRTHDAY" />
+			<result property="gender" column="GENDER" />
+			<result property="station" column="STATION" />
+			<result property="telephone" column="TELEPHONE" />
+			<result property="userLevel" column="USER_LEVEL" />
+			<result property="remark" column="REMARK" />
+			<result property="orderNo" column="ORDER_NO" />
+
+			<!--关联直属领导 -->
+			<association property="manager" javaType="UserInfo">
+				<id property="userInfoId" column="MANAGER_ID" />
+				<result property="name" column="MANAGER_NAME" />
+			</association>
+		</association>
+	</resultMap>
+
+	<!--状态改变 -->
+	<update id="updateState">
+		update user_p set state=#{state} where user_id =
+		#{id}
+	</update>
+
+	<!--删除多个用户 -->
+	<delete id="deleteUsers">
+		delete from user_p where user_id in(
+		<foreach collection="array" item="userId" separator=",">
+			#{userId}
+		</foreach>
+		)
+	</delete>
+
+	<select id="findManagerList" resultType="UserInfo">
+		select user_info_id,name
+		from user_info_p
+	</select>
+
+	<insert id="saveUser">
+		insert into
+		user_p(USER_ID,DEPT_ID,USERNAME,PASSWORD,STATE,CREATE_BY,
+		CREATE_DEPT,CREATE_TIME,UPDATE_BY,UPDATE_TIME)
+		values(
+		#{userId},
+		#{dept.deptId},
+		#{username},
+		#{password},
+		1,
+		#{createBy,jdbcType=VARCHAR},
+		#{createDept,jdbcType=VARCHAR},
+		SYSDATE,
+		#{updateBy,jdbcType=VARCHAR},
+		SYSDATE
+		)
+	</insert>
+
+
+	<!--执行用户和角色的插入 分别插入userId 和roleId -->
+	<insert id="saveUserRole">
+		insert into role_user_p values (#{roleId},#{userId})
+	</insert>
+
+	<!--根据用户的Id查询角色ID -->
+	<select id="findRoleIdByUserId" resultType="string">
+		SELECT
+		role_p.`NAME`
+		FROM
+		role_user_p
+		LEFT JOIN role_p ON role_p.ROLE_ID = role_user_p.ROLE_ID
+		WHERE
+		user_id = #{userId}
+	</select>
+
+	<!--根据用户的ID删除角色信息 -->
+	<delete id="deleteRoleByUserId">
+		delete from role_user_p where user_id = #{userId}
+	</delete>
+
+	<!--根据用户名查询用户 -->
+	<select id="findUserByUserName" resultType="User">
+		SELECT * FROM user_p
+		WHERE username= #{username}
+	</select>
+
+	<!--根据用户Id查询权限列表 -->
+	<select id="findModuleIdByUserId" resultType="string">
+		SELECT module_p.`NAME` FROM user_module_p LEFT JOIN module_p ON
+		module_p.MODULE_ID=user_module_p.MODULE_ID WHERE USER_ID=#{userId}
+	</select>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</mapper>
